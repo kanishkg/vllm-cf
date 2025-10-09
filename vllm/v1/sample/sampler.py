@@ -6,7 +6,9 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
+from vllm.logger import init_logger
 
+logger = init_logger(__name__)
 from vllm.config.model import LogprobsMode
 from vllm.utils import is_pin_memory_available
 from vllm.v1.outputs import LogprobsTensors, SamplerOutput
@@ -172,6 +174,16 @@ class Sampler(nn.Module):
         # (argmax invariant)
         for processor in sampling_metadata.logitsprocs.argmax_invariant:
             logits = processor.apply(logits)
+        
+        # Add Gumbel noise to logits
+        if sampling_metadata.gumbel_generators:
+            gumbel_noise = self._sample_gumbel(
+                logits.shape, 
+                logits.device, 
+                logits.dtype,
+                sampling_metadata.gumbel_generators
+        )
+        logits = logits + gumbel_noise
 
         # Apply top_k and/or top_p.
         random_sampled, processed_logprobs = self.topk_topp_sampler(
@@ -307,3 +319,29 @@ class Sampler(nn.Module):
             sampling_metadata.repetition_penalties,
             output_token_ids,
         )
+
+    def _sample_gumbel(
+        self, 
+        shape: tuple, 
+        device: torch.device, 
+        dtype: torch.dtype,
+        generators: dict[int, torch.Generator]
+    ) -> torch.Tensor:
+        """Sample Gumbel noise for each request."""
+        eps = 1e-20
+        
+        if len(generators) == 0:
+            # No per-request generators, sample all at once
+            uniform = torch.rand(shape, device=device, dtype=dtype)
+        else:
+            # Handle per-request generators
+            uniform = torch.rand(shape, device=device, dtype=dtype)
+            for i, generator in generators.items():
+                uniform[i] = torch.rand(
+                    uniform[i].shape,
+                    device=device,
+                    dtype=dtype,
+                    generator=generator
+                )
+        
+        return -torch.log(-torch.log(uniform + eps) + eps)
