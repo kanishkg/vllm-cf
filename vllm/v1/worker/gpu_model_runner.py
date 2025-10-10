@@ -662,8 +662,11 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             ):
                 generator = torch.Generator(device=self.device)
                 generator.manual_seed(sampling_params.seed)
-                gumbel_generator = torch.Generator(device=self.device)
-                gumbel_generator.manual_seed(sampling_params.gumbel_seed)
+                if sampling_params.gumbel_seed is not None:
+                    gumbel_generator = torch.Generator(device=self.device)
+                    gumbel_generator.manual_seed(sampling_params.gumbel_seed)
+                else:
+                    gumbel_generator = None
             else:
                 generator = None
                 gumbel_generator = None
