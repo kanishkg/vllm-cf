@@ -662,8 +662,11 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             ):
                 generator = torch.Generator(device=self.device)
                 generator.manual_seed(sampling_params.seed)
+                gumbel_generator = torch.Generator(device=self.device)
+                gumbel_generator.manual_seed(sampling_params.gumbel_seed)
             else:
                 generator = None
+                gumbel_generator = None
 
             if self.is_pooling_model:
                 assert pooling_params is not None
@@ -682,6 +685,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
                 sampling_params=sampling_params,
                 pooling_params=pooling_params,
                 generator=generator,
+                gumbel_generator=gumbel_generator,
                 block_ids=new_req_data.block_ids,
                 num_computed_tokens=new_req_data.num_computed_tokens,
                 output_token_ids=[],
@@ -2256,8 +2260,11 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
         ]
         for i in discard_sampled_tokens_req_indices:
             gen = self.input_batch.generators.get(int(i))
+            gumbel_gen = self.input_batch.gumbel_generators.get(int(i))
             if gen is not None:
                 gen.set_offset(gen.get_offset() - 4)
+            if gumbel_gen is not None:
+                gumbel_gen.set_offset(gumbel_gen.get_offset() - 4)
 
         # Copy some objects so they don't get modified after returning.
         # This is important when using async scheduling.
@@ -3483,6 +3490,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             top_p=dummy_tensors(0.9),
             top_k=dummy_tensors(logits.size(1) - 1),
             generators={},
+            gumbel_generators={},
             max_num_logprobs=None,
             no_penalties=True,
             prompt_token_ids=None,

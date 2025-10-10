@@ -144,6 +144,8 @@ class SamplingParams(
     Set to 0 to disable this."""
     seed: Optional[int] = None
     """Random seed to use for the generation."""
+    gumbel_seed: Optional[int] = None
+    """Random seed to use for the Gumbel noise."""
     stop: Optional[Union[str, list[str]]] = None
     """String(s) that stop the generation when they are generated. The returned
     output will not contain the stop strings."""
@@ -232,6 +234,7 @@ class SamplingParams(
         top_k: int = 0,
         min_p: float = 0.0,
         seed: Optional[int] = None,
+        gumbel_seed: Optional[int] = None,
         stop: Optional[Union[str, list[str]]] = None,
         stop_token_ids: Optional[list[int]] = None,
         bad_words: Optional[list[str]] = None,
@@ -284,6 +287,7 @@ class SamplingParams(
             top_k=top_k,
             min_p=min_p,
             seed=seed,
+            gumbel_seed=gumbel_seed,
             stop=stop,
             stop_token_ids=stop_token_ids,
             bad_words=bad_words,
