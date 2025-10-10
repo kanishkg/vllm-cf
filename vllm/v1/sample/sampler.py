@@ -176,12 +176,11 @@ class Sampler(nn.Module):
             logits = processor.apply(logits)
         
         # Add Gumbel noise to logits
-        if sampling_metadata.gumbel_generators:
-            gumbel_noise = self._sample_gumbel(
-                logits.shape, 
-                logits.device, 
-                logits.dtype,
-                sampling_metadata.generators
+        gumbel_noise = self._sample_gumbel(
+            logits.shape, 
+            logits.device, 
+            logits.dtype,
+            sampling_metadata.generators
         )
         logits = logits + gumbel_noise
 
