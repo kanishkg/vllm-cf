@@ -182,15 +182,16 @@ class Sampler(nn.Module):
             logits.dtype,
             sampling_metadata.gumbel_generators
         )
+        # TOOD: Add this as a separate test
         # save gumbel noise to disk, name it based on the current timestamp
         # give it a unique name based on already existing files
 
-        import os
-        index = 0
-        while os.path.exists(f"gumbel_noise_{index}.pt"):
-            index += 1
-        torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
-        print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}" )
+        # import os
+        # index = 0
+        # while os.path.exists(f"gumbel_noise_{index}.pt"):
+        #     index += 1
+        # torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
+        # print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}" )
         logits = logits + gumbel_noise
 
         # Apply top_k and/or top_p.
