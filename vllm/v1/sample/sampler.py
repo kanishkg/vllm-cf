@@ -182,6 +182,9 @@ class Sampler(nn.Module):
             logits.dtype,
             sampling_metadata.gumbel_generators
         )
+        # save gumbel noise to disk, name it based on the current timestamp
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        torch.save(gumbel_noise, f"gumbel_noise_{timestamp}.pt")
         logits = logits + gumbel_noise
 
         # Apply top_k and/or top_p.
