@@ -184,7 +184,7 @@ class Sampler(nn.Module):
         )
         # save gumbel noise to disk, name it based on the current timestamp
         import datetime
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         torch.save(gumbel_noise, f"gumbel_noise_{timestamp}.pt")
         logits = logits + gumbel_noise
 
