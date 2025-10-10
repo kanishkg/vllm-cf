@@ -190,6 +190,7 @@ class Sampler(nn.Module):
         while os.path.exists(f"gumbel_noise_{index}.pt"):
             index += 1
         torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
+        print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}" )
         logits = logits + gumbel_noise
 
         # Apply top_k and/or top_p.
