@@ -480,6 +480,7 @@ class ChatCompletionRequest(OpenAIBaseModel):
     presence_penalty: Optional[float] = 0.0
     response_format: Optional[AnyResponseFormat] = None
     seed: Optional[int] = Field(None, ge=_LONG_INFO.min, le=_LONG_INFO.max)
+    gumbel_seed: Optional[int] = None
     stop: Optional[Union[str, list[str]]] = []
     stream: Optional[bool] = False
     stream_options: Optional[StreamOptions] = None
@@ -836,6 +837,7 @@ class ChatCompletionRequest(OpenAIBaseModel):
             top_k=top_k,
             min_p=min_p,
             seed=self.seed,
+            gumbel_seed=self.gumbel_seed,
             stop=self.stop,
             stop_token_ids=self.stop_token_ids,
             logprobs=self.top_logprobs if self.logprobs else None,
@@ -1109,6 +1111,7 @@ class CompletionRequest(OpenAIBaseModel):
     n: int = 1
     presence_penalty: Optional[float] = 0.0
     seed: Optional[int] = Field(None, ge=_LONG_INFO.min, le=_LONG_INFO.max)
+    gumbel_seed: Optional[int] = None
     stop: Optional[Union[str, list[str]]] = []
     stream: Optional[bool] = False
     stream_options: Optional[StreamOptions] = None
@@ -1382,6 +1385,7 @@ class CompletionRequest(OpenAIBaseModel):
             top_k=top_k,
             min_p=min_p,
             seed=self.seed,
+            gumbel_seed=self.gumbel_seed,
             stop=self.stop,
             stop_token_ids=self.stop_token_ids,
             logprobs=self.logprobs,
@@ -2581,6 +2585,9 @@ class TranscriptionRequest(OpenAIBaseModel):
     seed: Optional[int] = Field(None, ge=_LONG_INFO.min, le=_LONG_INFO.max)
     """The seed to use for sampling."""
 
+    gumbel_seed: Optional[int] = None
+    """The seed to use for the Gumbel noise."""
+
     frequency_penalty: Optional[float] = 0.0
     """The frequency penalty to use for sampling."""
 
@@ -2636,6 +2643,7 @@ class TranscriptionRequest(OpenAIBaseModel):
             temperature=temperature,
             max_tokens=max_tokens,
             seed=self.seed,
+            gumbel_seed=self.gumbel_seed,
             top_p=top_p,
             top_k=top_k,
             min_p=min_p,
@@ -2795,6 +2803,9 @@ class TranslationRequest(OpenAIBaseModel):
     seed: Optional[int] = Field(None, ge=_LONG_INFO.min, le=_LONG_INFO.max)
     """The seed to use for sampling."""
 
+    gumbel_seed: Optional[int] = None
+    """The seed to use for the Gumbel noise."""
+
     temperature: float = Field(default=0.0)
     """The sampling temperature, between 0 and 1.
 
@@ -2854,6 +2865,7 @@ class TranslationRequest(OpenAIBaseModel):
             temperature=temperature,
             max_tokens=max_tokens,
             seed=self.seed,
+            gumbel_seed=self.gumbel_seed,
             output_kind=RequestOutputKind.DELTA
             if self.stream
             else RequestOutputKind.FINAL_ONLY,
