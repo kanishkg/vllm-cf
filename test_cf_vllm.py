@@ -1,6 +1,7 @@
 import vllm
 import torch
 from transformers import AutoTokenizer
+import Levenshtein
 
 MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
 
@@ -35,7 +36,7 @@ prompt_prefix = tokenizer.apply_chat_template(message_prefix, tokenize=False)
 prompt_prefix = prompt_prefix.replace("<|eot_id|>", "")
 sampling_params = vllm.SamplingParams(temperature=0.1, seed=0, max_tokens=512)
 outputs_cf = llm.generate([prompt_prefix], sampling_params)
-output_cf_text = outputs_cf[0].outputs[0].text
+output_cf_text = prefix + outputs_cf[0].outputs[0].text
 
 print("========== Counterfactual ==========")
 print(output_cf_text)
@@ -43,11 +44,13 @@ print(output_cf_text)
 # interventional
 sampling_params = vllm.SamplingParams(temperature=0.1, seed=1, max_tokens=512)
 outputs_interventional = llm.generate([prompt_prefix], sampling_params)
-output_interventional_text = outputs_interventional[0].outputs[0].text
+output_interventional_text = prefix + outputs_interventional[0].outputs[0].text
 print("========== Interventional ==========")
 print(output_interventional_text)
 
 
-
-
-
+# get edit distance between factual and counterfactual
+edit_distance = Levenshtein.distance(output_factual_text, output_cf_text)
+print(f"Edit distance between factual and counterfactual: {edit_distance}")
+edit_distance = Levenshtein.distance(output_factual_text, output_interventional_text)
+print(f"Edit distance between factual and interventional: {edit_distance}")
