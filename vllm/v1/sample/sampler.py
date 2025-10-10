@@ -176,23 +176,24 @@ class Sampler(nn.Module):
             logits = processor.apply(logits)
         
         # Add Gumbel noise to logits
-        gumbel_noise = self._sample_gumbel(
-            logits.shape, 
-            logits.device, 
-            logits.dtype,
-            sampling_metadata.gumbel_generators
-        )
-        # TOOD: Add this as a separate test
-        # save gumbel noise to disk, name it based on the current timestamp
-        # give it a unique name based on already existing files
+        if len(sampling_metadata.gumbel_generators) > 0:
+            gumbel_noise = self._sample_gumbel(
+                logits.shape, 
+                logits.device, 
+                logits.dtype,
+                sampling_metadata.gumbel_generators
+            )
+            # TOOD: Add this as a separate test
+            # save gumbel noise to disk, name it based on the current timestamp
+            # give it a unique name based on already existing files
 
-        # import os
-        # index = 0
-        # while os.path.exists(f"gumbel_noise_{index}.pt"):
-        #     index += 1
-        # torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
-        # print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}" )
-        logits = logits + gumbel_noise
+            # import os
+            # index = 0
+            # while os.path.exists(f"gumbel_noise_{index}.pt"):
+            #     index += 1
+            # torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
+            # print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}" )
+            logits = logits + gumbel_noise
 
         # Apply top_k and/or top_p.
         random_sampled, processed_logprobs = self.topk_topp_sampler(
