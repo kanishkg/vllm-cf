@@ -329,7 +329,7 @@ class Sampler(nn.Module):
         """Sample Gumbel noise for each request."""
         eps = 1e-20
         
-        print("ADDING GUMBEL NOISE")
+        # print("ADDING GUMBEL NOISE")
         if len(generators) == 0:
             # No per-request generators, sample all at once
             uniform = torch.rand(shape, device=device, dtype=dtype)
