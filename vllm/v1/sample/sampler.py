@@ -181,7 +181,7 @@ class Sampler(nn.Module):
                 logits.shape, 
                 logits.device, 
                 logits.dtype,
-                sampling_metadata.gumbel_generators
+                sampling_metadata.generators
         )
         logits = logits + gumbel_noise
 
