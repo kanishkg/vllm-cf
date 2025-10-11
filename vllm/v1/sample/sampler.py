@@ -371,11 +371,11 @@ class Sampler(nn.Module):
                     generator=generator
                 )
                 # store the noise on disk for debugging
-                import os
-                index = 0
-                while os.path.exists(f"gumbel_noise_{seed}_{position}_{index}.pt"):
-                    index += 1
-                torch.save(uniform[i], f"gumbel_noise_{seed}_{position}_{index}.pt")
-                print(f"Saved gumbel noise to gumbel_noise_{seed}_{position}_{index}.pt of size {uniform[i].shape}" )
+                # import os
+                # index = 0
+                # while os.path.exists(f"gumbel_noise_{seed}_{position}_{index}.pt"):
+                #     index += 1
+                # torch.save(uniform[i], f"gumbel_noise_{seed}_{position}_{index}.pt")
+                # print(f"Saved gumbel noise to gumbel_noise_{seed}_{position}_{index}.pt of size {uniform[i].shape}" )
         
         return -torch.log(-torch.log(uniform + eps) + eps)
