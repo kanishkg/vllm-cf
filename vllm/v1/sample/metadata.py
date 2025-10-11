@@ -22,7 +22,6 @@ class SamplingMetadata:
 
     # Gumbel fields
     gumbel_seeds: dict[int, int]
-    positions: Optional[torch.Tensor] = None
 
     # None means no logprobs, 0 means sampled token logprobs only
     max_num_logprobs: Optional[int]
@@ -44,6 +43,9 @@ class SamplingMetadata:
 
     # Loaded logits processors
     logitsprocs: LogitsProcessors
+
+    # Gumbel positions (set during sampling)
+    positions: Optional[torch.Tensor] = None
 
     # Speculative token ids
     spec_token_ids: Optional[list[list[int]]] = None
