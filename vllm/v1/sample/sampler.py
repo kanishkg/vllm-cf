@@ -176,23 +176,14 @@ class Sampler(nn.Module):
             logits = processor.apply(logits)
         
         # Add Gumbel noise to logits
-        if len(sampling_metadata.gumbel_generators) > 0:
+        if len(sampling_metadata.gumbel_seeds) > 0:
             gumbel_noise = self._sample_gumbel(
                 logits.shape, 
                 logits.device, 
                 logits.dtype,
-                sampling_metadata.gumbel_generators
+                sampling_metadata.gumbel_seeds,
+                sampling_metadata.positions
             )
-            # TOOD: Add this as a separate test
-            # save gumbel noise to disk, name it based on the current timestamp
-            # give it a unique name based on already existing files
-
-            # import os
-            # index = 0
-            # while os.path.exists(f"gumbel_noise_{index}.pt"):
-            #     index += 1
-            # torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
-            # print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}" )
             logits = logits + gumbel_noise
 
         # Apply top_k and/or top_p.
@@ -335,24 +326,56 @@ class Sampler(nn.Module):
         shape: tuple, 
         device: torch.device, 
         dtype: torch.dtype,
-        generators: dict[int, torch.Generator]
+        seeds: dict[int, int],
+        positions: Optional[torch.Tensor]
     ) -> torch.Tensor:
-        """Sample Gumbel noise for each request."""
+        """Sample Gumbel noise for each request.
+        
+        For each request with a seed, creates a new generator with 
+        seed = hash(gumbel_seed + position) to ensure deterministic sampling
+        based on the position of the token being decoded.
+        """
         eps = 1e-20
         
         # print("ADDING GUMBEL NOISE")
-        if len(generators) == 0:
-            # No per-request generators, sample all at once
+        if len(seeds) == 0:
+            # No per-request seeds, sample all at once
             uniform = torch.rand(shape, device=device, dtype=dtype)
         else:
-            # Handle per-request generators
+            # Handle per-request seeds
             uniform = torch.rand(shape, device=device, dtype=dtype)
-            for i, generator in generators.items():
+            for i, seed in seeds.items():
+                # Get the position for this request
+                if positions is not None:
+                    if positions.ndim == 1:
+                        # Simple 1D positions
+                        position = positions[i].item()
+                    else:
+                        # M-RoPE positions (multi-dimensional)
+                        # Use the first dimension for seed generation
+                        position = positions[0, i].item()
+                else:
+                    # Fallback if positions not available
+                    position = 0
+                
+                # Create a new generator with seed = hash(seed + position)
+                # Using Python's hash to combine seed and position
+                combined_seed = hash((seed, position)) % (2**32)
+                generator = torch.Generator(device=device)
+                generator.manual_seed(combined_seed)
+                
                 uniform[i] = torch.rand(
                     uniform[i].shape,
                     device=device,
                     dtype=dtype,
                     generator=generator
                 )
+                # store the noise on disk for debugging
+                import os
+                index = 0
+                while os.path.exists(f"gumbel_noise_{seed}_{position}_{index}.pt"):
+                    index += 1
+                torch.save(uniform[i], f"gumbel_noise_{seed}_{position}_{index}.pt")
+                print(f"Saved gumbel noise to gumbel_noise_{seed}_{position}_{index}.pt of size {uniform[i].shape}" )
         
         return -torch.log(-torch.log(uniform + eps) + eps)

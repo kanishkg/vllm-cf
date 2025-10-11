@@ -19,7 +19,11 @@ class SamplingMetadata:
     top_k: Optional[torch.Tensor]
 
     generators: dict[int, torch.Generator]
-    gumbel_generators: dict[int, torch.Generator]
+
+    # Gumbel fields
+    gumbel_seeds: dict[int, int]
+    positions: Optional[torch.Tensor] = None
+
     # None means no logprobs, 0 means sampled token logprobs only
     max_num_logprobs: Optional[int]
 

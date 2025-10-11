@@ -662,14 +662,10 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             ):
                 generator = torch.Generator(device=self.device)
                 generator.manual_seed(sampling_params.seed)
-                if sampling_params.gumbel_seed is not None:
-                    gumbel_generator = torch.Generator(device=self.device)
-                    gumbel_generator.manual_seed(sampling_params.gumbel_seed)
-                else:
-                    gumbel_generator = None
+                gumbel_seed = sampling_params.gumbel_seed
             else:
                 generator = None
-                gumbel_generator = None
+                gumbel_seed = None
 
             if self.is_pooling_model:
                 assert pooling_params is not None
@@ -688,7 +684,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
                 sampling_params=sampling_params,
                 pooling_params=pooling_params,
                 generator=generator,
-                gumbel_generator=gumbel_generator,
+                gumbel_seed=gumbel_seed,
                 block_ids=new_req_data.block_ids,
                 num_computed_tokens=new_req_data.num_computed_tokens,
                 output_token_ids=[],
@@ -2204,6 +2200,17 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
     ) -> SamplerOutput:
         # Sample the next token and get logprobs if needed.
         sampling_metadata = self.input_batch.sampling_metadata
+
+        # Get positions for the tokens being sampled
+        # These correspond to logits_indices
+        if self.uses_mrope:
+            sample_positions = self.mrope_positions.gpu[:, self.logits_indices]
+        else:
+            sample_positions = self.positions.gpu[self.logits_indices]
+        
+        # Add positions to sampling metadata
+        sampling_metadata.positions = sample_positions
+
         if spec_decode_metadata is None:
             return self.sampler(
                 logits=logits,
@@ -2263,11 +2270,10 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
         ]
         for i in discard_sampled_tokens_req_indices:
             gen = self.input_batch.generators.get(int(i))
-            gumbel_gen = self.input_batch.gumbel_generators.get(int(i))
             if gen is not None:
                 gen.set_offset(gen.get_offset() - 4)
-            if gumbel_gen is not None:
-                gumbel_gen.set_offset(gumbel_gen.get_offset() - 4)
+            # Note: gumbel_seeds don't need offset tracking since we create
+            # new generators on-the-fly based on seed + position
 
         # Copy some objects so they don't get modified after returning.
         # This is important when using async scheduling.
@@ -2446,6 +2452,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
                     num_tokens_across_dp,
                     use_cascade_attn,
                 ) = self._prepare_inputs(scheduler_output)
+                self.logits_indices = logits_indices
 
             if ubatch_slices:
                 assert num_tokens_across_dp is not None
@@ -3493,7 +3500,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             top_p=dummy_tensors(0.9),
             top_k=dummy_tensors(logits.size(1) - 1),
             generators={},
-            gumbel_generators={},
+            gumbel_seeds={},
             max_num_logprobs=None,
             no_penalties=True,
             prompt_token_ids=None,

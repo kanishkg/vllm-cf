@@ -34,7 +34,7 @@ class CachedRequestState:
     sampling_params: Optional[SamplingParams]
     pooling_params: Optional[PoolingParams]
     generator: Optional[torch.Generator]
-    gumbel_generator: Optional[torch.Generator]
+    gumbel_seed: Optional[int]
 
     block_ids: tuple[list[int], ...]
     num_computed_tokens: int
@@ -211,8 +211,8 @@ class InputBatch:
         # generator should not be included in the dictionary.
         self.generators: dict[int, torch.Generator] = {}
 
-        # req_index -> gumbel_generator
-        self.gumbel_generators: dict[int, torch.Generator] = {}
+        # req_index -> gumbel_seed
+        self.gumbel_seeds: dict[int, int] = {}
 
         self.num_logprobs: dict[str, int] = {}
         # NOTE(rob): num_prompt_logprobs only includes reqs
@@ -369,8 +369,8 @@ class InputBatch:
             if request.generator is not None:
                 self.generators[req_index] = request.generator
 
-            if request.gumbel_generator is not None:
-                self.gumbel_generators[req_index] = request.gumbel_generator
+            if request.gumbel_seed is not None:
+                self.gumbel_seeds[req_index] = request.gumbel_seed
 
             if sampling_params.logprobs is not None:
                 self.num_logprobs[req_id] = (
@@ -480,7 +480,7 @@ class InputBatch:
         self.presence_penalties_reqs.discard(req_id)
         self.repetition_penalties_reqs.discard(req_id)
         self.generators.pop(req_index, None)
-        self.gumbel_generators.pop(req_index, None)
+        self.gumbel_seeds.pop(req_index, None)
         self.num_logprobs.pop(req_id, None)
         self.num_prompt_logprobs.pop(req_id, None)
         self.in_progress_prompt_logprobs_cpu.pop(req_id, None)
@@ -588,7 +588,7 @@ class InputBatch:
         )
 
         swap_dict_values(self.generators, i1, i2)
-        swap_dict_values(self.gumbel_generators, i1, i2)
+        swap_dict_values(self.gumbel_seeds, i1, i2)
         swap_dict_values(self.bad_words_token_ids, i1, i2)
 
         if self.allowed_token_ids_mask_cpu_tensor is not None:
@@ -707,9 +707,9 @@ class InputBatch:
             generator = self.generators.pop(last_req_index, None)
             if generator is not None:
                 self.generators[empty_index] = generator
-            gumbel_generator = self.gumbel_generators.pop(last_req_index, None)
-            if gumbel_generator is not None:
-                self.gumbel_generators[empty_index] = gumbel_generator
+            gumbel_seed = self.gumbel_seeds.pop(last_req_index, None)
+            if gumbel_seed is not None:
+                self.gumbel_seeds[empty_index] = gumbel_seed
 
             # TODO convert these to LogitsProcessors
             if self.allowed_token_ids_mask_cpu_tensor is not None:
@@ -805,7 +805,7 @@ class InputBatch:
             top_p=None if self.no_top_p else self.top_p[:num_reqs],
             top_k=None if self.no_top_k else self.top_k[:num_reqs],
             generators=self.generators,
-            gumbel_generators=self.gumbel_generators,
+            gumbel_seeds=self.gumbel_seeds,
             max_num_logprobs=self.max_num_logprobs,
             prompt_token_ids=prompt_token_ids,
             frequency_penalties=self.frequency_penalties[:num_reqs],
