@@ -181,9 +181,10 @@ class Sampler(nn.Module):
                 sampling_metadata.gumbel_seeds,
                 sampling_metadata.positions
             )
-            logits = logits + gumbel_noise
+            logits_gumbel = logits + gumbel_noise
             # we now directly take argmax when gumbel noise is added
-            sampled = self.greedy_sample(logits)
+            sampled = self.greedy_sample(logits_gumbel)
+            # return the original logits and logprobs
             processed_logprobs = None
             if sampling_metadata.max_num_logprobs is not None:
                 if self.logprobs_mode == "processed_logits":
