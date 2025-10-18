@@ -170,10 +170,7 @@ class Sampler(nn.Module):
             logits, sampling_metadata.temperature, sampling_metadata.all_random
         )
 
-        # Apply logits processors that only apply to random sampling
-        # (argmax invariant)
-        for processor in sampling_metadata.logitsprocs.argmax_invariant:
-            logits = processor.apply(logits)
+
         
         # Add Gumbel noise to logits
         if len(sampling_metadata.gumbel_seeds) > 0:
@@ -195,6 +192,10 @@ class Sampler(nn.Module):
                     processed_logprobs = self.compute_logprobs(logits)
             return sampled, processed_logprobs
 
+        # Apply logits processors that only apply to random sampling
+        # (argmax invariant)
+        for processor in sampling_metadata.logitsprocs.argmax_invariant:
+            logits = processor.apply(logits)
         # Apply top_k and/or top_p.
         random_sampled, processed_logprobs = self.topk_topp_sampler(
             logits,
