@@ -130,8 +130,8 @@ class Sampler(nn.Module):
     ) -> torch.Tensor:
         # Use in-place division to avoid creating a new tensor.
         # Avoid division by zero if there are greedy requests.
-        if not all_random:
-            temp = torch.where(temp < _SAMPLING_EPS, 1.0, temp)
+        # if not all_random:
+        #     temp = torch.where(temp < _SAMPLING_EPS, 1.0, temp)
         return logits.div_(temp.unsqueeze(dim=1))
 
     @staticmethod
