@@ -153,6 +153,7 @@ class Sampler(nn.Module):
         if sampling_metadata.all_random:
             greedy_sampled = None
         else:
+            print("greedy sampling")
             greedy_sampled = self.greedy_sample(logits)
             if sampling_metadata.all_greedy:
                 processed_logprobs = None
