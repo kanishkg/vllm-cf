@@ -130,8 +130,8 @@ class Sampler(nn.Module):
     ) -> torch.Tensor:
         # Use in-place division to avoid creating a new tensor.
         # Avoid division by zero if there are greedy requests.
-        # if not all_random:
-        #     temp = torch.where(temp < _SAMPLING_EPS, 1.0, temp)
+        if not all_random:
+            temp = torch.where(temp < _SAMPLING_EPS, 1.0, temp)
         return logits.div_(temp.unsqueeze(dim=1))
 
     @staticmethod
@@ -166,9 +166,9 @@ class Sampler(nn.Module):
         assert sampling_metadata.temperature is not None
 
         # Apply temperature.
-        logits = self.apply_temperature(
-            logits, sampling_metadata.temperature, sampling_metadata.all_random
-        )
+        # logits = self.apply_temperature(
+        #     logits, sampling_metadata.temperature, sampling_metadata.all_random
+        # )
 
 
         
