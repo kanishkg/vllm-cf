@@ -391,7 +391,8 @@ class Sampler(nn.Module):
                 
                 # Create a new generator with seed = hash(seed + position)
                 # Using Python's hash to combine seed and position
-                combined_seed = hash((seed, position)) % (2**32)
+                # combined_seed = hash((seed, position)) % (2**32)
+                combined_seed = seed
                 generator = torch.Generator(device=device)
                 generator.manual_seed(combined_seed)
                 
