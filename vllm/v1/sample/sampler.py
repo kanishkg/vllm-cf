@@ -184,7 +184,17 @@ class Sampler(nn.Module):
                 sampling_metadata.gumbel_seeds,
                 sampling_metadata.positions
             )
-            logits_gumbel = logits # + gumbel_noise
+            import os
+            index = 0
+            while os.path.exists(f"gumbel_noise_{index}.pt"):
+                index += 1
+            torch.save(gumbel_noise, f"gumbel_noise_{index}.pt")
+            print(f"Saved gumbel noise to gumbel_noise_{index}.pt of size {gumbel_noise.shape}")
+            torch.save(logits, f"logits_{index}.pt")
+            print(f"Saved logits to logits_{index}.pt of size {logits.shape}" )
+            logits_gumbel = logits + gumbel_noise
+            torch.save(logits_gumbel, f"logits_gumbel_{index}.pt")
+            print(f"Saved logits_gumbel to logits_gumbel_{index}.pt of size {logits_gumbel.shape}")
             # we now directly take argmax when gumbel noise is added
             sampled = self.greedy_sample(logits_gumbel)
             # return the original logits and logprobs
@@ -389,13 +399,13 @@ class Sampler(nn.Module):
                     generator=generator
                 )
                 # store the noise on disk for debugging
-                import os
-                index = 0
-                while os.path.exists(f"gumbel_noise_{seed}_{position}_{index}.pt"):
-                    index += 1
-                gumbel_noise = -torch.log(-torch.log(uniform[i] + eps) + eps)
-                torch.save(uniform[i], f"uniform_noise_{seed}_{position}_{index}.pt")
-                torch.save(gumbel_noise, f"gumbel_noise_{seed}_{position}_{index}.pt")
-                print(f"Saved uniform and gumbel noise to uniform_noise_{seed}_{position}_{index}.pt and gumbel_noise_{seed}_{position}_{index}.pt of size {uniform[i].shape}" )
+                # import os
+                # index = 0
+                # while os.path.exists(f"gumbel_noise_{seed}_{position}_{index}.pt"):
+                #     index += 1
+                # gumbel_noise = -torch.log(-torch.log(uniform[i] + eps) + eps)
+                # torch.save(uniform[i], f"uniform_noise_{seed}_{position}_{index}.pt")
+                # torch.save(gumbel_noise, f"gumbel_noise_{seed}_{position}_{index}.pt")
+                # print(f"Saved uniform and gumbel noise to uniform_noise_{seed}_{position}_{index}.pt and gumbel_noise_{seed}_{position}_{index}.pt of size {uniform[i].shape}" )
         
         return -torch.log(-torch.log(uniform + eps) + eps)
