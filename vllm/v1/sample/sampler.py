@@ -174,6 +174,8 @@ class Sampler(nn.Module):
 
         
         # Add Gumbel noise to logits
+
+        print("gumbel seeds", sampling_metadata.gumbel_seeds)
         if len(sampling_metadata.gumbel_seeds) > 0:
             print("adding gumbel noise at position", sampling_metadata.positions)
             gumbel_noise = self._sample_gumbel(
