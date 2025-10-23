@@ -2206,7 +2206,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             sample_positions = self.mrope_positions.gpu[:, self.logits_indices]
         else:
             sample_positions = self.positions.gpu[self.logits_indices]
-        
+        import pdb; pdb.set_trace()
         # Add positions to sampling metadata
         sampling_metadata.positions = sample_positions
 
