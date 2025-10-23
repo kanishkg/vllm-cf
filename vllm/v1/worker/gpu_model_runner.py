@@ -2207,7 +2207,7 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
         else:
             sample_positions = self.positions.gpu[self.logits_indices]
         # Add positions to sampling metadata
-        sampling_metadata.positions = sample_positions+1
+        sampling_metadata.positions = sample_positions
 
         if spec_decode_metadata is None:
             return self.sampler(
