@@ -177,13 +177,13 @@ class Sampler(nn.Module):
 
         if len(sampling_metadata.gumbel_seeds) > 0:
             print("adding gumbel noise at position", sampling_metadata.positions)
-            # gumbel_noise = self._sample_gumbel(
-            #     logits.shape, 
-            #     logits.device, 
-            #     logits.dtype,
-            #     sampling_metadata.gumbel_seeds,
-            #     sampling_metadata.positions
-            # )
+            gumbel_noise = self._sample_gumbel(
+                logits.shape, 
+                logits.device, 
+                logits.dtype,
+                sampling_metadata.gumbel_seeds,
+                sampling_metadata.positions
+            )
             logits_gumbel = logits # + gumbel_noise
             # we now directly take argmax when gumbel noise is added
             sampled = self.greedy_sample(logits_gumbel)
