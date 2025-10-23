@@ -149,22 +149,22 @@ class Sampler(nn.Module):
         may update the logits tensor in-place.
         """
 
-        assert not (sampling_metadata.all_greedy and sampling_metadata.all_random)
-        if sampling_metadata.all_random:
-            greedy_sampled = None
-        else:
-            print("greedy sampling")
-            greedy_sampled = self.greedy_sample(logits)
-            if sampling_metadata.all_greedy:
-                processed_logprobs = None
-                if sampling_metadata.max_num_logprobs is not None:
-                    if self.logprobs_mode == "processed_logits":
-                        processed_logprobs = logits
-                    elif self.logprobs_mode == "processed_logprobs":
-                        processed_logprobs = self.compute_logprobs(logits)
-                return greedy_sampled, processed_logprobs
+        # assert not (sampling_metadata.all_greedy and sampling_metadata.all_random)
+        # if sampling_metadata.all_random:
+        #     greedy_sampled = None
+        # else:
+        #     print("greedy sampling")
+        #     greedy_sampled = self.greedy_sample(logits)
+        #     if sampling_metadata.all_greedy:
+        #         processed_logprobs = None
+        #         if sampling_metadata.max_num_logprobs is not None:
+        #             if self.logprobs_mode == "processed_logits":
+        #                 processed_logprobs = logits
+        #             elif self.logprobs_mode == "processed_logprobs":
+        #                 processed_logprobs = self.compute_logprobs(logits)
+        #         return greedy_sampled, processed_logprobs
 
-        assert sampling_metadata.temperature is not None
+        # assert sampling_metadata.temperature is not None
 
         # Apply temperature.
         # logits = self.apply_temperature(
