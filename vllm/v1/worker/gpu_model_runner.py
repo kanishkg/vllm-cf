@@ -656,16 +656,15 @@ class GPUModelRunner(LoRAModelRunnerMixin, KVConnectorModelRunnerMixin):
             sampling_params = new_req_data.sampling_params
             pooling_params = new_req_data.pooling_params
 
+            gumbel_seed = sampling_params.gumbel_seed
             if (
                 sampling_params
                 and sampling_params.sampling_type == SamplingType.RANDOM_SEED
             ):
                 generator = torch.Generator(device=self.device)
                 generator.manual_seed(sampling_params.seed)
-                gumbel_seed = sampling_params.gumbel_seed
             else:
                 generator = None
-                gumbel_seed = None
 
             if self.is_pooling_model:
                 assert pooling_params is not None
