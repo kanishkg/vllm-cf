@@ -200,7 +200,7 @@ class Sampler(nn.Module):
             logits_gumbel = logits + gumbel_noise
             # we now directly take argmax when gumbel noise is added
             sampled = self.greedy_sample(logits_gumbel)
-            import pdb; pdb.set_trace()
+            print(sampled, sampling_metadata.positions)
             # return the original logits and logprobs
             processed_logprobs = None
             if sampling_metadata.max_num_logprobs is not None:
