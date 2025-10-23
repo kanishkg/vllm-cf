@@ -209,7 +209,8 @@ class Sampler(nn.Module):
 
         
         print("aaaaa sampled")
-        import pdb; pdb.set_trace()
+        return torch.zeros_like(logits, dtype=torch.int64), logits.log_softmax(dim=-1, dtype=torch.float32) 
+        # import pdb; pdb.set_trace()
         # if greedy_sampled is None:
         #     return random_sampled, processed_logprobs
 
