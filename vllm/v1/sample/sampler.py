@@ -167,16 +167,15 @@ class Sampler(nn.Module):
         # assert sampling_metadata.temperature is not None
 
         # Apply temperature.
-        # logits = self.apply_temperature(
-        #     logits, sampling_metadata.temperature, sampling_metadata.all_random
-        # )
+        logits = self.apply_temperature(
+            logits, sampling_metadata.temperature, sampling_metadata.all_random
+        )
 
 
         
         # Add Gumbel noise to logits
 
         if len(sampling_metadata.gumbel_seeds) > 0:
-            print("adding gumbel noise at position", sampling_metadata.positions)
             gumbel_noise = self._sample_gumbel(
                 logits.shape, 
                 logits.device, 
@@ -184,23 +183,9 @@ class Sampler(nn.Module):
                 sampling_metadata.gumbel_seeds,
                 sampling_metadata.positions
             )
-            # for i, seed in sampling_metadata.gumbel_seeds.items():
-            #     position = sampling_metadata.positions[i].item()
-            #     import os
-            #     index = 0
-            #     while os.path.exists(f"gumbel_noise_{seed}_{position}_{index}.pt"):
-            #         index += 1
-            #     torch.save(gumbel_noise[i], f"gumbel_noise_{seed}_{position}_{index}.pt")
-            #     print(f"Saved gumbel noise to gumbel_noise_{seed}_{position}_{index}.pt of size {gumbel_noise[i].shape}")
-            #     torch.save(logits[i], f"logits_{seed}_{position}_{index}.pt")
-            #     print(f"Saved logits to logits_{seed}_{position}_{index}.pt of size {logits[i].shape}")
-            #     sum_data = gumbel_noise[i] + logits[i]
-            #     torch.save(sum_data, f"sum_data_{seed}_{position}_{index}.pt")
-            #     print(f"Saved sum data to sum_data_{seed}_{position}_{index}.pt of size {sum_data.shape}")
             logits_gumbel = logits + gumbel_noise
             # we now directly take argmax when gumbel noise is added
             sampled = self.greedy_sample(logits_gumbel)
-            print(sampled, sampling_metadata.positions)
             # return the original logits and logprobs
             processed_logprobs = None
             if sampling_metadata.max_num_logprobs is not None:
