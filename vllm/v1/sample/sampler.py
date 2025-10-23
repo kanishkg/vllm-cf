@@ -206,16 +206,19 @@ class Sampler(nn.Module):
             sampling_metadata.top_p,
         )
 
-        if greedy_sampled is None:
-            return random_sampled, processed_logprobs
+        
+        print("aaaaa sampled")
+        import pdb; pdb.set_trace()
+        # if greedy_sampled is None:
+        #     return random_sampled, processed_logprobs
 
-        sampled = torch.where(
-            sampling_metadata.temperature < _SAMPLING_EPS,
-            greedy_sampled,
-            random_sampled,
-            out=greedy_sampled,  # Reuse tensor
-        )
-        return sampled, processed_logprobs
+        # sampled = torch.where(
+        #     sampling_metadata.temperature < _SAMPLING_EPS,
+        #     greedy_sampled,
+        #     random_sampled,
+        #     out=greedy_sampled,  # Reuse tensor
+        # )
+        # return sampled, processed_logprobs
 
     @staticmethod
     def compute_logprobs(logits: torch.Tensor) -> torch.Tensor:
